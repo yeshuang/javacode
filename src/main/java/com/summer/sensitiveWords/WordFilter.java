@@ -15,6 +15,8 @@ import java.util.Set;
 
 
 /**
+ * http://fanshuyao.iteye.com/blog/2394157
+ * 
  * 创建时间：2016年8月30日 下午3:01:12
  * 
  * 思路： 创建一个FilterSet，枚举了0~65535的所有char是否是某个敏感词开头的状态
