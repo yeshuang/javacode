@@ -1,6 +1,6 @@
 */target/*
 /target/
-.gitignore
+*.idea
 /.settings/
 .classpath
 .project
