@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+	<!-- 引入配置文件 -->
+	<properties resource="generator.properties"/>
+
+	<!-- 指定数据连接驱动jar地址 -->
+	<classPathEntry location="${classPath}"/>
+
+	<!-- 数据库驱动 -->
+	<context id="DB2Tables" targetRuntime="MyBatis3">
+
+		<commentGenerator>
+			<property name="suppressDate" value="true"/>
+			<!-- 是否去除自动生成的注释 true：是 ： false:否 -->
+			<property name="suppressAllComments" value="true"/>
+		</commentGenerator>
+		<!--数据库链接URL，用户名、密码 -->
+		<jdbcConnection driverClass="${jdbc_driver}" connectionURL="${jdbc_url}" userId="${jdbc_user}" password="${jdbc_password}"/>
+
+		<javaTypeResolver>
+			<property name="forceBigDecimals" value="false"/>
+		</javaTypeResolver>
+
+		<!--生成Model类存放位置 -->
+		<javaModelGenerator targetPackage="com.cmiot.nps.dao.model" targetProject="${project}">
+			<property name="enableSubPackages" value="true"/>
+			<property name="trimStrings" value="true"/>
+		</javaModelGenerator>
+
+		<!--生成映射文件存放位置 -->
+		<sqlMapGenerator targetPackage="mapper" targetProject="${project}">
+			<property name="enableSubPackages" value="true"/>
+		</sqlMapGenerator>
+
+		<!--生成apper类存放位置 -->
+		<javaClientGenerator targetPackage="com.cmiot.nps.dao.mapper" targetProject="${project}" type="XMLMAPPER">
+			<property name="enableSubPackages" value="true"/>
+		</javaClientGenerator>
+
+		<!--生成对应表及类名 -->
+		<!-- mapperName可以指定自己的接口名称,如不添加此参数默认为xxxxMapper.java -->
+		<table tableName="t_daily_statistic" domainObjectName="DailyStatistic" mapperName="DailyStatisticDao" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false"
+			enableSelectByExample="false" selectByExampleQueryId="false"></table>
+
+		<table tableName="t_monthly_statistic" domainObjectName="MonthlyStatistic" mapperName="MonthlyStatisticDao" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false"
+			enableSelectByExample="false" selectByExampleQueryId="false"></table>
+
+		<table tableName="t_unique_gateway" domainObjectName="UniqueGateway" mapperName="UniqueGatewayDao" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false"
+			enableSelectByExample="false" selectByExampleQueryId="false"></table>
+
+
+		<table tableName="t_unique_ip" domainObjectName="UniqueIp" mapperName="UniqueIpDao" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false"
+			enableSelectByExample="false" selectByExampleQueryId="false"></table>
+
+		<table tableName="t_unique_view" domainObjectName="UniqueView" mapperName="UniqueViewDao" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false"
+			enableSelectByExample="false" selectByExampleQueryId="false"></table>
+		<table tableName="t_weekly_statistic" domainObjectName="WeeklyStatistic" mapperName="WeeklyStatisticDao" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false"
+			enableSelectByExample="false" selectByExampleQueryId="false"></table>
+	</context>
+</generatorConfiguration>
