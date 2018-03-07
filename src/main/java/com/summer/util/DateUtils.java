@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -311,7 +312,22 @@ public class DateUtils {
 		return dft.format(calendar.getTime());
 	}
 
+	public static Date[] getMonthFirstAndEndDate(Date date) {
+		Calendar calendar = new GregorianCalendar();
+		calendar.setTime(date);
+		calendar.set(Calendar.DAY_OF_MONTH, calendar.getMinimum(Calendar.DATE));
+		Date b = calendar.getTime();
+		calendar.clear();
+		calendar.setTime(date);
+		calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DATE));
+		Date e = calendar.getTime();
+		return new Date[] { b, e };
+	}
+
 	public static void main(String[] args) {
-		System.out.println(getLastMaxMonthDate());
+		Date date = DateUtils.format("2018-01", "yyyy-MM");
+		Date[] d = getMonthFirstAndEndDate(date);
+		System.out.println(DateUtils.format(d[0], DateUtils.YYYY_MM_DD) + " " + DateUtils.format(d[1], DateUtils.YYYY_MM_DD));
+
 	}
 }
