@@ -324,10 +324,26 @@ public class DateUtils {
 		return new Date[] { b, e };
 	}
 
+	public static List<String> getDayListOfMonth(Date date) {
+		List<String> list = new ArrayList<>();
+		Calendar aCalendar = Calendar.getInstance(Locale.CHINA);
+		aCalendar.setTime(date);
+		int year = aCalendar.get(Calendar.YEAR);// 年份
+		int month = aCalendar.get(Calendar.MONTH) + 1;// 月份
+		int day = aCalendar.getActualMaximum(Calendar.DATE);
+		for (int i = 1; i <= day; i++) {
+			String aDate = String.valueOf(year) + "-" + month + "-" + i;
+			list.add(aDate);
+		}
+		return list;
+	}
+
 	public static void main(String[] args) {
-		Date date = DateUtils.format("2018-01", "yyyy-MM");
-		Date[] d = getMonthFirstAndEndDate(date);
-		System.out.println(DateUtils.format(d[0], DateUtils.YYYY_MM_DD) + " " + DateUtils.format(d[1], DateUtils.YYYY_MM_DD));
+		Date date = format("2018-01", "yyyy-MM");
+		List<String> dates = getDayListOfMonth(date);// getDayList(date);
+		for (String d : dates) {
+			System.out.println("date:" + d);
+		}
 
 	}
 }
