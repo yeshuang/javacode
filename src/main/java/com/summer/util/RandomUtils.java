@@ -1,10 +1,16 @@
 package com.summer.util;
 
 import java.util.Random;
+import java.util.UUID;
+
 
 public class RandomUtils {
 
 	private static String SEPARATOR_OF_MAC = ":";
+	
+	public static String getUuid() {
+		return UUID.randomUUID().toString().replaceAll("-", "");
+	}
 
 	/**
 	 * 随机生成MAC地址
