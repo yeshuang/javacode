@@ -1,5 +1,8 @@
 package com.summer.javacode;
 
+/**
+ * 枚举
+ */
 public class StudyEnum {
 	public static void main(String[] args) {
 
