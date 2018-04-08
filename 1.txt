@@ -1,0 +1,27 @@
+锁屏:
+Control+Shift+Power
+
+Chrome调试工具快捷键
+command + option(alt) + I
+
+开启Spotlight搜索：Control 键+空格
+Command+D
+当你在Spotlight中输入单词后，这组快捷键可以快速打开字典应用中该词条相应页面。
+
+Command+L
+输入单词后，这组快捷键可以在不打开字典应用的情况下，给出单词的解释。
+
+Command+B
+立刻打开网页在搜索引擎中搜索你键入的内容。
+
+Command+R
+立刻打开搜索到内容所在的文件夹。
+
+Command+O
+与回车键的功能一样，立刻打开高亮选择的内容
+
+Command+I
+打开高亮项目在Finder下的详细信息
+
+选择一行或一段快捷键:
+shift＋command ＋ 左右方向键
