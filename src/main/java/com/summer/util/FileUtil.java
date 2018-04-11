@@ -5,92 +5,145 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class FileUtil {
 
-	public static void main(String[] args) {
-		System.out.println("ready go !!! \n");
-		long st = System.currentTimeMillis();
+	/**
+	 * 获取文件目录下所有文件路径
+	 * @param strPath
+	 *        文件目录
+	 * @return
+	 */
+	public static Set<File> getFileList(String strPath, String suffix) {
+		Set<File> filelist = new HashSet<File>();
+		File dir = new File(strPath);
+		// 该文件目录下文件全部放入数组
+		File[] files = dir.listFiles();
+		if (files != null) {
+			for (int i = 0; i < files.length; i++) {
+				String fileName = files[i].getName();
+				// 判断是文件还是文件夹
+				if (files[i].isDirectory()) {
+					// 获取文件绝对路径
+					getFileList(files[i].getAbsolutePath(), suffix);
+					// 判断文件名是否以.xml结尾
+				} else if (fileName.endsWith(suffix)) {
+					// 获取到的文件名
+					// String strFileName = files[i].getAbsolutePath();
+					// System.out.println("strFileName: " + strFileName);
+					filelist.add(files[i]);
+				} else {
+					continue;
+				}
+			}
+
+		}
+		return filelist;
+	}
+
+	public static void readFileByLine(int bufSize, FileChannel fcin, ByteBuffer rBuffer, FileChannel fcout, ByteBuffer wBuffer) {
+		String enter = "\n";
+		List<String> dataList = new ArrayList<String>();// 存储读取的每行数据
+		byte[] lineByte = new byte[0];
+
+		String encode = "GBK";
+		// String encode = "UTF-8";
 		try {
-			readyGo();
-			// testMethod();
-		} catch (Exception e) {
+			// temp：由于是按固定字节读取，在一次读取中，第一行和最后一行经常是不完整的行，因此定义此变量来存储上次的最后一行和这次的第一行的内容，
+			// 并将之连接成完成的一行，否则会出现汉字被拆分成2个字节，并被提前转换成字符串而乱码的问题
+			byte[] temp = new byte[0];
+			while (fcin.read(rBuffer) != -1) {// fcin.read(rBuffer)：从文件管道读取内容到缓冲区(rBuffer)
+				int rSize = rBuffer.position();// 读取结束后的位置，相当于读取的长度
+				byte[] bs = new byte[rSize];// 用来存放读取的内容的数组
+				rBuffer.rewind();// 将position设回0,所以你可以重读Buffer中的所有数据,此处如果不设置,无法使用下面的get方法
+				rBuffer.get(bs);// 相当于rBuffer.get(bs,0,bs.length())：从position初始位置开始相对读,读bs.length个byte,并写入bs[0]到bs[bs.length-1]的区域
+				rBuffer.clear();
+
+				int startNum = 0;
+				int LF = 10;// 换行符
+				int CR = 13;// 回车符
+				boolean hasLF = false;// 是否有换行符
+				for (int i = 0; i < rSize; i++) {
+					if (bs[i] == LF) {
+						hasLF = true;
+						int tempNum = temp.length;
+						int lineNum = i - startNum;
+						lineByte = new byte[tempNum + lineNum];// 数组大小已经去掉换行符
+
+						System.arraycopy(temp, 0, lineByte, 0, tempNum);// 填充了lineByte[0]~lineByte[tempNum-1]
+						temp = new byte[0];
+						System.arraycopy(bs, startNum, lineByte, tempNum, lineNum);// 填充lineByte[tempNum]~lineByte[tempNum+lineNum-1]
+
+						String line = new String(lineByte, 0, lineByte.length, encode);// 一行完整的字符串(过滤了换行和回车)
+						dataList.add(line);
+						// System.out.println(line);
+						writeFileByLine(fcout, wBuffer, line + enter);
+
+						// 过滤回车符和换行符
+						if (i + 1 < rSize && bs[i + 1] == CR) {
+							startNum = i + 2;
+						} else {
+							startNum = i + 1;
+						}
+
+					}
+				}
+				if (hasLF) {
+					temp = new byte[bs.length - startNum];
+					System.arraycopy(bs, startNum, temp, 0, temp.length);
+				} else {// 兼容单次读取的内容不足一行的情况
+					byte[] toTemp = new byte[temp.length + bs.length];
+					System.arraycopy(temp, 0, toTemp, 0, temp.length);
+					System.arraycopy(bs, 0, toTemp, temp.length, bs.length);
+					temp = toTemp;
+				}
+			}
+			if (temp != null && temp.length > 0) {// 兼容文件最后一行没有换行的情况
+				String line = new String(temp, 0, temp.length, encode);
+				dataList.add(line);
+				// System.out.println(line);
+				writeFileByLine(fcout, wBuffer, line + enter);
+			}
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("\n all files have been raped -_- expenditure time (" + (System.currentTimeMillis() - st) + ")ms");
 	}
 
 	/**
-	 * 测试方法
-	 * @throws Exception
+	 * 写到文件上
+	 * @param fcout
+	 * @param wBuffer
+	 * @param line
 	 */
-	public static void testMethod() throws Exception {
-		FileInputStream fis = new FileInputStream("/Users/shuang/git/rms-js/rms-dao-js/src/main/resources/sqlmap/GatewayBusinessDetailJsMapper.xml");
-		BufferedReader buf = new BufferedReader(new InputStreamReader(fis));
-		String s = null;
-		StringBuffer cont = new StringBuffer();
-		while ((s = buf.readLine()) != null) {
-			cont.append(s);
-		}
-		buf.close();
-		Pattern pattern = Pattern.compile("<select [\\s\\S]*?>[\\s\\S]*?</select>");// <select [\\s\\S]*?>[\\s\\S(order by)+\\s\\S]*?</select>
-		Matcher matcher = pattern.matcher(cont);
-		StringBuffer sql = new StringBuffer();
-		while (matcher.find()) {
-			String pm = matcher.group();
-			System.out.println(pm);
-			if (((pm.indexOf("distinct") > -1 || pm.indexOf("DISTINCT") > -1) && (pm.indexOf("order by") > -1 || pm.indexOf("ORDER BY") > -1)) || (pm.indexOf("group by") > -1 || pm.indexOf("GROUP BY") > -1)) {
-				sql.append(pm);
-			}
-		}
-		System.out.println("-------------------------- \n pattern contents: " + sql);
-	}
-
-	public static void readyGo() throws Exception {
-		Set<File> filelist = getFileList("/Users/shuang/git/rms-js/rms-dao-js/src/main/resources/sqlmap/");
-		if (filelist.isEmpty()) {
-			System.out.println("----not find files----");
-			System.exit(0);
-		}
-		Iterator<File> it = filelist.iterator();
-		while (it.hasNext()) {
-			File file = it.next();
-			Pattern pattern = Pattern.compile("<select [\\s\\S]*?>[\\s\\S]*?</select>");// <select [\\s\\S]*?>[\\s\\S(order by)+\\s\\S]*?</select>
-			Matcher matcher = pattern.matcher(getFileContents(file.getPath()));
-			StringBuffer sql = new StringBuffer();
-			while (matcher.find()) {
-				String pm = matcher.group();
-				if (pm.isEmpty()) {
-					System.out.println("----not pattern contents----");
-					System.exit(0);
-				}
-				if (((pm.indexOf("distinct") > -1 || pm.indexOf("DISTINCT") > -1) && (pm.indexOf("order by") > -1 || pm.indexOf("ORDER BY") > -1)) || (pm.indexOf("group by") > -1 || pm.indexOf("GROUP BY") > -1)) {
-					sql.append(pm);
-				}
-			}
-			writerInFile("/Users/shuang/Downloads/orderby-group-distinct/" + file.getName(), sql.toString());
-			// System.out.println(file.getName() + " have been raped -_- -_-");
+	@SuppressWarnings("static-access")
+	public static void writeFileByLine(FileChannel fcout, ByteBuffer wBuffer, String line) {
+		try {
+			fcout.write(wBuffer.wrap(line.getBytes("UTF-8")), fcout.size());
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
 	/**
 	 * 获取文件内容
 	 * @param path
-	 *            文件绝对路径
+	 *        文件绝对路径
 	 * @return
 	 * @throws Exception
 	 */
-	public static String getFileContents(String path) throws Exception {
+	public static String getFileContentsIO(String path) throws Exception {
 		FileInputStream fis = new FileInputStream(path);
 		BufferedReader buf = new BufferedReader(new InputStreamReader(fis));
 		String s = null;
-		StringBuffer cont = new StringBuffer();
+		StringBuilder cont = new StringBuilder();
 		while ((s = buf.readLine()) != null) {
 			cont.append(s);
 		}
@@ -101,45 +154,17 @@ public class FileUtil {
 	/**
 	 * 内容写入文件
 	 * @param path
-	 *            带文件名后缀的绝对文件路径
+	 *        带文件名后缀的绝对文件路径
 	 * @param cont
-	 *            内容
+	 *        内容
 	 * @throws Exception
 	 */
-	public static void writerInFile(String path, String cont) throws Exception {
+	public static void writerInFileIO(String path, String cont, boolean append) throws Exception {
 		File file = new File(path);
-		FileWriter fw = new FileWriter(file.getAbsoluteFile());
+		FileWriter fw = new FileWriter(file.getAbsoluteFile(), append);
 		BufferedWriter bw = new BufferedWriter(fw);
 		bw.write(cont);
 		bw.close();
-	}
-
-	/**
-	 * 获取文件目录下所有文件路径
-	 * @param strPath
-	 *            文件目录
-	 * @return
-	 */
-	public static Set<File> getFileList(String strPath) {
-		Set<File> filelist = new HashSet<File>();
-		File dir = new File(strPath);
-		File[] files = dir.listFiles(); // 该文件目录下文件全部放入数组
-		if (files != null) {
-			for (int i = 0; i < files.length; i++) {
-				String fileName = files[i].getName();
-				if (files[i].isDirectory()) { // 判断是文件还是文件夹
-					getFileList(files[i].getAbsolutePath()); // 获取文件绝对路径
-				} else if (fileName.endsWith("xml")) { // 判断文件名是否以.xml结尾
-					String strFileName = files[i].getAbsolutePath();
-					// System.out.println("strFileName: " + strFileName);
-					filelist.add(files[i]);
-				} else {
-					continue;
-				}
-			}
-
-		}
-		return filelist;
 	}
 
 }
